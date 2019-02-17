@@ -6,7 +6,7 @@ import fr.ign.cogit.modules.SimPLUSimulator
 import fr.ign.parameters.Parameters
 import fr.ign.task.Initialize
 
-trait ArtiScalesTask {
+trait ArtiScalesTaskSimPLU {
   def apply(rootFolder: File, inputFolder: File, outputFolder: File, paramFile1: File, paramFile2: File): Unit = {
     val lF = new java.util.ArrayList[File]
     lF.add(paramFile1)
@@ -16,4 +16,4 @@ trait ArtiScalesTask {
   }
 }
 
-object ArtiScalesTask extends ArtiScalesTask
+object ArtiScalesTaskSimPLU extends ArtiScalesTaskSimPLU
