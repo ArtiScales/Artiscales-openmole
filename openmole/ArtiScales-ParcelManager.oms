@@ -7,7 +7,7 @@ val rootDir = Val[File]
 val dataDir = Val[File]
 
 val rootFolderName = "ArtiScalesLikeTBLunch"
-val parcelFolderName = "ParcelSelectionFile"
+val MUPFolderName = "MupCityDepot"
 val scenarioFolderName = "DDense"
 val variantFolderName = "variante0"
 
@@ -15,7 +15,7 @@ val paramFileName1 = "parameterScenario.xml"
 val paramFileName2 = "parameterTechnic.xml"
 val directoriesToAnalyze  = Val[Array[File]]
 
-val baseInputDir = workDirectory / parcelFolderName / scenarioFolderName / variantFolderName
+val baseInputDir = workDirectory / MUPFolderName / scenarioFolderName / variantFolderName
 val dirSource = ListDirectoriesSource(baseInputDir, directoriesToAnalyze, ".*-.*")
 
 val resultDirName = "results"
@@ -27,8 +27,8 @@ val javaTask = ScalaTask(
     """
     |import artiscalesopenmoleplugin._
     |val folderOut = newDir()
-    |withThreadClassLoader(classLoader(ArtiScalesTask))(ArtiScalesTask(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
-  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTask),
+    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
+  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
   rootDir := workDirectory / rootFolderName,
   parameterFile1 := workDirectory / paramFileName1,
   parameterFile2 := workDirectory / paramFileName2,
