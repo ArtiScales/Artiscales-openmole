@@ -11,24 +11,25 @@ val parcelFolderName = "ParcelSelectionFile"
 val scenarioFolderName = "DDense"
 val variantFolderName = "variante0"
 
-val paramFileName1 = "parameterScenario.xml"
-val paramFileName2 = "parameterTechnic.xml"
+val paramFileName1 = "parameterScenario.json"
+val paramFileName2 = "parameterTechnic.json"
 val directoriesToAnalyze  = Val[Array[File]]
 
 val baseInputDir = workDirectory / parcelFolderName / scenarioFolderName / variantFolderName
-val dirSource = ListDirectoriesSource(baseInputDir, directoriesToAnalyze, ".*-.*")
+val dirSource = ListDirectoriesSource(baseInputDir, directoriesToAnalyze)//, ".*-.*")
 
-val resultDirName = "results"
+val resultDirName = "results_grid"
 val resultDir = workDirectory / resultDirName
 
 val explo = ExplorationTask(dataDir in directoriesToAnalyze withName dirName)
-  
+
 val javaTask = ScalaTask(
     """
     |import artiscalesopenmoleplugin._
     |val folderOut = newDir()
+    |folderOut.mkdirs()
     |withThreadClassLoader(classLoader(ArtiScalesTaskSimPLU))(ArtiScalesTaskSimPLU(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
-  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTask),
+  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskSimPLU),
   rootDir := workDirectory / rootFolderName,
   parameterFile1 := workDirectory / paramFileName1,
   parameterFile2 := workDirectory / paramFileName2,
@@ -37,7 +38,7 @@ val javaTask = ScalaTask(
 )
 val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName / "${dirName}/")
 
-//val env = LocalEnvironment(2)
-val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+val env = LocalEnvironment(4)
+//val env = EGIEnvironment("vo.complex-systems.eu")
 
-(explo source dirSource) -< (javaTask on env hook (copyHook))
+(explo source dirSource) -< (javaTask on env hook (copyHook) when """dataDir.list.contains("parcelle.shp") && dataDir.list.contains("geoSnap")""")
