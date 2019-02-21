@@ -6,15 +6,16 @@ val parameterFile2 = Val[File]
 val rootDir = Val[File]
 val dataDir = Val[File]
 
-val rootFolderName = "ArtiScalesLikeTBLunch"
+val rootFolderName = "Root"
 val parcelFolderName = "ParcelSelectionFile"
 val scenarioFolderName = "DDense"
 val variantFolderName = "variante0"
 
+val paramFolder = "paramSet"
 val paramFileName1 = "parameterScenario.json"
 val paramFileName2 = "parameterTechnic.json"
-val directoriesToAnalyze  = Val[Array[File]]
 
+val directoriesToAnalyze  = Val[Array[File]]
 val baseInputDir = workDirectory / parcelFolderName / scenarioFolderName / variantFolderName
 val dirSource = ListDirectoriesSource(baseInputDir, directoriesToAnalyze)//, ".*-.*")
 
@@ -22,7 +23,7 @@ val resultDirName = "results_grid"
 val resultDir = workDirectory / resultDirName
 
 val explo = ExplorationTask(dataDir in directoriesToAnalyze withName dirName)
-
+  
 val javaTask = ScalaTask(
     """
     |import artiscalesopenmoleplugin._
@@ -30,15 +31,16 @@ val javaTask = ScalaTask(
     |folderOut.mkdirs()
     |withThreadClassLoader(classLoader(ArtiScalesTaskSimPLU))(ArtiScalesTaskSimPLU(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskSimPLU),
+  //libraries += workDirectory / "artiscales-openmole-plugin_2.12-1.0.jar",
   rootDir := workDirectory / rootFolderName,
-  parameterFile1 := workDirectory / paramFileName1,
-  parameterFile2 := workDirectory / paramFileName2,
+  parameterFile1 := workDirectory / paramFolder / scenarioFolderName / paramFileName1,
+  parameterFile2 := workDirectory / paramFolder / scenarioFolderName / paramFileName2,
   inputs += (rootDir, dataDir, parameterFile1, parameterFile2, dirName),
   outputs += (folderOut, dataDir, dirName)
 )
 val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName / "${dirName}/")
 
-val env = LocalEnvironment(4)
-//val env = EGIEnvironment("vo.complex-systems.eu")
+//val env = LocalEnvironment(4)
+val env = EGIEnvironment("vo.complex-systems.eu")
 
 (explo source dirSource) -< (javaTask on env hook (copyHook) when """dataDir.list.contains("parcelle.shp") && dataDir.list.contains("geoSnap")""")

@@ -1,43 +1,51 @@
 val folderOut = Val[File]
-var dirName = Val[String]
 var fileName = Val[String]
 val parameterFile1 = Val[File]
 val parameterFile2 = Val[File]
 val rootDir = Val[File]
-val dataDir = Val[File]
+val dataFile = Val[File]
+val zipCode = Val[String]
 
-val rootFolderName = "ArtiScalesLikeTBLunch"
+val rootFolderName = "Root"
 val MUPFolderName = "MupCityDepot"
 val scenarioFolderName = "DDense"
 val variantFolderName = "variante0"
 
-val paramFileName1 = "parameterScenario.xml"
-val paramFileName2 = "parameterTechnic.xml"
-val directoriesToAnalyze  = Val[Array[File]]
+val paramFolder = "paramSet"
+val paramFileName1 = "parameterScenario.json"
+val paramFileName2 = "parameterTechnic.json"
 
-val baseInputDir = workDirectory / MUPFolderName / scenarioFolderName / variantFolderName
-val dirSource = ListDirectoriesSource(baseInputDir, directoriesToAnalyze, ".*-.*")
-
-val resultDirName = "results"
+val resultDirName = "ParcelManager"
 val resultDir = workDirectory / resultDirName
 
-val explo = ExplorationTask(dataDir in directoriesToAnalyze withName dirName)
-  
+val csvSampler = CSVSampling(workDirectory / "DEPCOMCities.csv") set (
+  columns += ("zip", zipCode)
+)
+
 val javaTask = ScalaTask(
     """
     |import artiscalesopenmoleplugin._
     |val folderOut = newDir()
-    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
+    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, dataFile, parameterFile1, parameterFile2, zipCode))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
+//  libraries += workDirectory / "artiscales-openmole-plugin_2.12-1.0.jar",
   rootDir := workDirectory / rootFolderName,
-  parameterFile1 := workDirectory / paramFileName1,
-  parameterFile2 := workDirectory / paramFileName2,
-  inputs += (rootDir, dataDir, parameterFile1, parameterFile2, dirName),
-  outputs += (folderOut, dataDir, dirName)
+  parameterFile1 := workDirectory / paramFolder / scenarioFolderName / paramFileName1,
+  parameterFile2 := workDirectory / paramFolder / scenarioFolderName / paramFileName2,
+  inputs += (rootDir, dataFile, parameterFile1, parameterFile2, zipCode),
+  outputs += (folderOut, dataFile, zipCode)
 )
-val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName / "${dirName}/")
 
-//val env = LocalEnvironment(2)
-val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName / "${zipCode}")
 
-(explo source dirSource) -< (javaTask on env hook (copyHook))
+val env = LocalEnvironment(2)
+//val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+
+val exploration = DirectSampling(
+  evaluation = javaTask on env hook copyHook,
+  sampling = 
+    (csvSampler x 
+    (dataFile in (workDirectory / MUPFolderName / scenarioFolderName / variantFolderName) filter(_.getName.endsWith(".shp")) ) )
+)
+
+exploration
