@@ -18,10 +18,11 @@ OsgiKeys.importPackage := Seq("*;resolution:=optional")
 //|*;-split-package:=merge-first
 //|""".stripMargin)
 
+OsgiKeys.privatePackage := Seq("!scala.*,!java.*,*")
 
-OsgiKeys.privatePackage := Seq("*")
+//OsgiKeys.privatePackage := Seq("*")
 
-OsgiKeys.requireCapability := """osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))""""
+OsgiKeys.requireCapability := """osgi.ee; osgi.ee="JavaSE";version:List="1.8,1.9"""""
 
 resolvers += "IDB" at "http://igetdb.sourceforge.net/maven2-repository/"
 
@@ -49,21 +50,23 @@ resolvers += "Hibernate" at "http://www.hibernatespatial.org/repository"
 
 val geotoolsGridVersion = "18.4"
 
-libraryDependencies += "org.geotools" % "gt-grid" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-coverage" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-geotiff" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-image" % geotoolsGridVersion
-//
-libraryDependencies += "org.geotools" % "gt-epsg-hsql" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-referencing" % geotoolsGridVersion
-//libraryDependencies += "org.geotools" % "gt-epsg-extension" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-shapefile" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-graph" % geotoolsGridVersion
-//
-libraryDependencies += "org.geotools" % "gt-metadata" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-opengis" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-main" % geotoolsGridVersion
-libraryDependencies += "org.geotools" % "gt-api" % geotoolsGridVersion
+libraryDependencies ++= Seq (
+  "org.geotools" % "gt-grid" % geotoolsGridVersion,
+  "org.geotools" % "gt-coverage" % geotoolsGridVersion,
+  "org.geotools" % "gt-geotiff" % geotoolsGridVersion,
+  "org.geotools" % "gt-image" % geotoolsGridVersion,
+  "org.geotools" % "gt-epsg-hsql" % geotoolsGridVersion,
+  "org.geotools" % "gt-referencing" % geotoolsGridVersion,
+  "org.geotools" % "gt-shapefile" % geotoolsGridVersion,
+  "org.geotools" % "gt-graph" % geotoolsGridVersion,
+  "org.geotools" % "gt-metadata" % geotoolsGridVersion,
+  "org.geotools" % "gt-opengis" % geotoolsGridVersion,
+  "org.geotools" % "gt-main" % geotoolsGridVersion,
+  "org.geotools" % "gt-api" % geotoolsGridVersion,
+  "javax.media" % "jai_core" % "1.1.3" from "http://download.osgeo.org/webdav/geotools/javax/media/jai_core/1.1.3/jai_core-1.1.3.jar",
+  "javax.media" % "jai_codec" % "1.1.3",
+  "javax.media" % "jai_imageio" % "1.1"
+)
 
 val artiscalesVersion = "0.2-SNAPSHOT"
 
@@ -91,19 +94,21 @@ libraryDependencies += "fr.ign.cogit" % "ArtiScales" % artiscalesVersion exclude
     ExclusionRule(organization = "jfree"),
     ExclusionRule(organization = "javax.media"),
     ExclusionRule(organization = "org.slf4j")
-  )
+)
 
 val simplu3DVersion = "1.2-SNAPSHOT"
 val geoxVersion = "1.9-SNAPSHOT"
 
-libraryDependencies += "fr.ign.cogit" % "simplu3d" % simplu3DVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-api" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-feature" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-filter" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-io" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-util" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-spatial" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
-libraryDependencies += "fr.ign.cogit" % "geoxygene-sig3d" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
+libraryDependencies ++= Seq (
+  "fr.ign.cogit" % "simplu3d" % simplu3DVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-api" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-feature" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-filter" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-io" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-util" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-spatial" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools")),
+  "fr.ign.cogit" % "geoxygene-sig3d" % geoxVersion excludeAll(ExclusionRule(organization = "org.geotools"))
+)
 
 excludeDependencies ++= Seq(
   ExclusionRule("com.vividsolutions", "jts"),

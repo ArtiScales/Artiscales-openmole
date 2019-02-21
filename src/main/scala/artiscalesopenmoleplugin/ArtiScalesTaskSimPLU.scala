@@ -8,12 +8,12 @@ import fr.ign.task.Initialize
 
 trait ArtiScalesTaskSimPLU {
   def apply(rootFolder: File, inputFolder: File, outputFolder: File, paramFile1: File, paramFile2: File): Unit = {
-//    Initialize.init()
     val lF = new java.util.ArrayList[File]
     lF.add(paramFile1)
     lF.add(paramFile2)
     val p: SimpluParametersJSON = new SimpluParametersJSON(lF)
-    new SimPLUSimulator(rootFolder, inputFolder, p, outputFolder).run
+    val simulator = new SimPLUSimulator(rootFolder, inputFolder, p, outputFolder)
+    simulator.run
   }
 }
 
