@@ -28,7 +28,6 @@ val javaTask = ScalaTask(
     |val folderOut = newDir()
     |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, dataFile, parameterFile1, parameterFile2, zipCode))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
-  //libraries += workDirectory / "artiscales-openmole-plugin_2.12-1.0.jar",
   rootDir := workDirectory / rootFolderName,
   parameterFile1 := workDirectory / rootFolderName / paramFolder / scenarioFolderName / paramFileName1,
   parameterFile2 := workDirectory / rootFolderName / paramFolder / scenarioFolderName / paramFileName2,
@@ -38,8 +37,8 @@ val javaTask = ScalaTask(
 
 val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName)
 
-val env = LocalEnvironment(3)
-//val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+//val env = LocalEnvironment(3)
+val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
 
 val exploration = DirectSampling(
   evaluation = javaTask on env hook copyHook,

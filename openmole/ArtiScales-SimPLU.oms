@@ -24,7 +24,7 @@ val resultDirName = "SimPLU"
 val resultDir = workDirectory / resultDirName
 
 val explo = ExplorationTask(dataDir in directoriesToAnalyze withName dirName)
-  
+
 val javaTask = ScalaTask(
     """
     |import artiscalesopenmoleplugin._
@@ -32,7 +32,6 @@ val javaTask = ScalaTask(
     |folderOut.mkdirs()
     |withThreadClassLoader(classLoader(ArtiScalesTaskSimPLU))(ArtiScalesTaskSimPLU(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskSimPLU),
-  //libraries += workDirectory / "artiscales-openmole-plugin_2.12-1.0.jar",
   rootDir := workDirectory / rootFolder / paramFolder,
   parameterFile1 := workDirectory / rootFolder / paramFolder / paramSet / scenarioFolderName / paramFileName1,
   parameterFile2 := workDirectory / rootFolder / paramFolder / paramSet / scenarioFolderName / paramFileName2,
@@ -41,7 +40,8 @@ val javaTask = ScalaTask(
 )
 val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName / "${dirName}/")
 
-val env = LocalEnvironment(4)
-//val env = EGIEnvironment("vo.complex-systems.eu")
+//val env = LocalEnvironment(4)
 
-(explo source dirSource) -< (javaTask on env hook (copyHook) when """dataDir.list.contains("parcelle.shp") && dataDir.list.contains("geoSnap")""")
+val env = EGIEnvironment("vo.complex-systems.eu")
+
+(explo source dirSource) -< (javaTask on env hook (copyHook)) when """dataDir.list.contains("parcelle.shp") && dataDir.list.contains("geoSnap")"""
