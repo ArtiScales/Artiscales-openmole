@@ -6,12 +6,16 @@ val rootDir = Val[File]
 val dataFile = Val[File]
 val zipCode = Val[String]
 
-val rootFolderName = "Root"
-val MUPFolderName = "MupCityDepot"
-val scenarioFolderName = "DDense"
-val variantFolderName = "variante0"
+val scenarioFolder = Val[File]
+val variantFolder = Val[File]
 
-val paramFolder = "paramSet"
+val scenarioFolderName = Val[String]//"DDense"
+val variantFolderName = Val[String]//"variante0"
+
+val rootFolderName = "data"
+val MUPFolderName = "MupCityRepository"
+
+val paramSet = "paramSet"
 val paramFileName1 = "parameterScenario.json"
 val paramFileName2 = "parameterTechnic.json"
 
@@ -29,13 +33,11 @@ val javaTask = ScalaTask(
     |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, dataFile, parameterFile1, parameterFile2, zipCode))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
   rootDir := workDirectory / rootFolderName,
-  parameterFile1 := workDirectory / rootFolderName / paramFolder / scenarioFolderName / paramFileName1,
-  parameterFile2 := workDirectory / rootFolderName / paramFolder / scenarioFolderName / paramFileName2,
-  inputs += (rootDir, dataFile, parameterFile1, parameterFile2, zipCode),
-  outputs += (folderOut, dataFile, zipCode)
+  inputs += (rootDir, dataFile, parameterFile1, parameterFile2, zipCode, scenarioFolderName, variantFolderName, scenarioFolder),
+  outputs += (folderOut, dataFile, zipCode, scenarioFolderName, variantFolderName)
 )
 
-val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / scenarioFolderName / variantFolderName)
+val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
 
 //val env = LocalEnvironment(3)
 val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
@@ -43,8 +45,14 @@ val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes
 val exploration = DirectSampling(
   evaluation = javaTask on env hook copyHook,
   sampling = 
-    (csvSampler x 
-    (dataFile in (workDirectory / MUPFolderName / scenarioFolderName / variantFolderName) filter(_.getName.endsWith(".shp")) ) )
+    (
+        csvSampler x 
+        (scenarioFolder in (workDirectory / MUPFolderName) withName scenarioFolderName) x
+        (parameterFile1 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName1) x
+        (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
+        (variantFolder in scenarioFolder withName variantFolderName) x
+        (dataFile in variantFolder filter(_.getName.endsWith(".shp")))
+    )
 )
 
 exploration
