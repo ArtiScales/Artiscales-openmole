@@ -4,7 +4,6 @@ import java.io.File
 
 import fr.ign.cogit.modules.SimPLUSimulator
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON
-import fr.ign.task.Initialize
 
 trait ArtiScalesTaskSimPLU {
   def apply(rootFolder: File, inputFolder: File, outputFolder: File, paramFile1: File, paramFile2: File): Unit = {

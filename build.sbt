@@ -48,7 +48,7 @@ resolvers += "geosolutions" at "http://maven.geo-solutions.it/"
 
 resolvers += "Hibernate" at "http://www.hibernatespatial.org/repository"
 
-val geotoolsGridVersion = "18.4"
+val geotoolsGridVersion = "21.0"
 
 libraryDependencies ++= Seq (
   "org.geotools" % "gt-grid" % geotoolsGridVersion,
@@ -62,13 +62,13 @@ libraryDependencies ++= Seq (
   "org.geotools" % "gt-metadata" % geotoolsGridVersion,
   "org.geotools" % "gt-opengis" % geotoolsGridVersion,
   "org.geotools" % "gt-main" % geotoolsGridVersion,
-  "org.geotools" % "gt-api" % geotoolsGridVersion,
+//  "org.geotools" % "gt-api" % geotoolsGridVersion,
   "javax.media" % "jai_core" % "1.1.3" from "http://download.osgeo.org/webdav/geotools/javax/media/jai_core/1.1.3/jai_core-1.1.3.jar",
   "javax.media" % "jai_codec" % "1.1.3",
   "javax.media" % "jai_imageio" % "1.1"
 )
 
-val artiscalesVersion = "0.2-SNAPSHOT"
+val artiscalesVersion = "0.3-SNAPSHOT"
 
 libraryDependencies += "fr.ign.cogit" % "ArtiScales" % artiscalesVersion excludeAll(
     ExclusionRule(organization = "org.geotools"),
@@ -96,8 +96,8 @@ libraryDependencies += "fr.ign.cogit" % "ArtiScales" % artiscalesVersion exclude
     ExclusionRule(organization = "org.slf4j")
 )
 
-val simplu3DVersion = "1.2-SNAPSHOT"
-val geoxVersion = "1.9-SNAPSHOT"
+val simplu3DVersion = "1.3-SNAPSHOT"
+val geoxVersion = "1.10-SNAPSHOT"
 
 libraryDependencies ++= Seq (
   "fr.ign.cogit" % "simplu3d" % simplu3DVersion excludeAll(ExclusionRule(organization = "org.geotools")),
