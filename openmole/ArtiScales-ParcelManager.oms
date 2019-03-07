@@ -37,7 +37,10 @@ val javaTask = ScalaTask(
   outputs += (folderOut, dataFile, zipCode, scenarioFolderName, variantFolderName)
 )
 
-val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
+val outputPath = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
+val copyHook =  CopyFileHook(folderOut, outputPath)
+
+val outputPathWithZipCode = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${zipCode}")
 
 //val env = LocalEnvironment(3)
 val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
@@ -52,7 +55,8 @@ val exploration = DirectSampling(
         (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
         (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
         (dataFile in variantFolder filter(_.getName.endsWith(".shp")))
-    )
+    ),
+  condition = !outputPathWithZipCode.exists || outputPathWithZipCode.isEmpty
 )
 
 exploration
