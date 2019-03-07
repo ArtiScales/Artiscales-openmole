@@ -47,10 +47,10 @@ val exploration = DirectSampling(
   sampling = 
     (
         csvSampler x 
-        (scenarioFolder in (workDirectory / MUPFolderName) withName scenarioFolderName) x
+        (scenarioFolder in (workDirectory / MUPFolderName) filter(_.isDirectory) withName scenarioFolderName) x
         (parameterFile1 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName1) x
         (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
-        (variantFolder in scenarioFolder withName variantFolderName) x
+        (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
         (dataFile in variantFolder filter(_.getName.endsWith(".shp")))
     )
 )

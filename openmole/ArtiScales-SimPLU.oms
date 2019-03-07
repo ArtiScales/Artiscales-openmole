@@ -10,9 +10,11 @@ val parcelFolderName = "ParcelSelectionRepository"
 
 val scenarioFolder = Val[File]
 val variantFolder = Val[File]
+val subFolder = Val[File]
 
 val scenarioFolderName = Val[String]//"DDense"
 val variantFolderName = Val[String]//"variante0"
+val subFolderName = Val[String]
 
 val rootFolderName = "data"
 val paramFolder = "paramFolder"
@@ -37,10 +39,10 @@ val javaTask = ScalaTask(
     |withThreadClassLoader(classLoader(ArtiScalesTaskSimPLU))(ArtiScalesTaskSimPLU(rootDir, dataDir, folderOut, parameterFile1, parameterFile2))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskSimPLU),
   rootDir := workDirectory / rootFolderName / paramFolder,
-  inputs += (rootDir, dataDir, parameterFile1, parameterFile2, scenarioFolderName, variantFolderName, dirName),
-  outputs += (folderOut, dataDir, scenarioFolderName, variantFolderName, dirName)
+  inputs += (rootDir, dataDir, parameterFile1, parameterFile2, scenarioFolderName, variantFolderName, subFolderName, dirName),
+  outputs += (folderOut, dataDir, scenarioFolderName, variantFolderName, subFolderName, dirName)
 )
-val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${dirName}/")
+val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${subFolderName}" / "${dirName}/")
 
 //val env = LocalEnvironment(4)
 
@@ -52,11 +54,12 @@ val exploration = DirectSampling(
   evaluation = javaTask on env hook copyHook,
   sampling = 
     (
-        (scenarioFolder in (workDirectory / parcelFolderName) withName scenarioFolderName) x
+        (scenarioFolder in (workDirectory / parcelFolderName) filter(_.isDirectory) withName scenarioFolderName) x
         (parameterFile1 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName1) x
         (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
-        (variantFolder in scenarioFolder withName variantFolderName) x
-        (dataDir in variantFolder filter(_.isDirectory) withName dirName)
+        (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
+        (subFolder in variantFolder filter(_.isDirectory) withName subFolderName) x
+        (dataDir in subFolder filter(_.isDirectory) withName dirName)
     )
 )
 
