@@ -42,11 +42,13 @@ val javaTask = ScalaTask(
   inputs += (rootDir, dataDir, parameterFile1, parameterFile2, scenarioFolderName, variantFolderName, subFolderName, dirName),
   outputs += (folderOut, dataDir, scenarioFolderName, variantFolderName, subFolderName, dirName)
 )
-val copyHook =  CopyFileHook(folderOut,  workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${subFolderName}" / "${dirName}/")
 
-//val env = LocalEnvironment(4)
+val outputPath = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${subFolderName}" / "${dirName}/")
+val copyHook =  CopyFileHook(folderOut,  outputPath)
 
-val env = EGIEnvironment("vo.complex-systems.eu")
+val env = LocalEnvironment(8)
+
+//val env = EGIEnvironment("vo.complex-systems.eu")
 
 //(explo source dirSource) -< (javaTask on env hook (copyHook)) when """dataDir.list.contains("parcelle.shp") && dataDir.list.contains("geoSnap")"""
 
@@ -60,7 +62,8 @@ val exploration = DirectSampling(
         (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
         (subFolder in variantFolder filter(_.isDirectory) withName subFolderName) x
         (dataDir in subFolder filter(_.isDirectory) withName dirName)
-    )
+    ),
+  condition = !outputPath.exists
 )
 
 exploration
