@@ -1,7 +1,6 @@
 package artiscalesopenmoleplugin
 
 import java.io.File
-import java.nio.file.Files
 
 import fr.ign.cogit.modules.SelectParcels
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON
@@ -9,7 +8,7 @@ import fr.ign.cogit.simplu3d.util.SimpluParametersJSON
 import scala.util.{Failure, Success, Try}
 
 trait ArtiScalesTaskParcelManager {
-  def apply(rootFolder: File, outputFolder: File, varianteSpatialConf: File, paramFile1: File, paramFile2: File, zip: String, tmpFolder: File): Unit = {
+  def apply(rootFolder: File, outputFolder: File, variantFolder: File, variantSpatialConf: String, paramFile1: File, paramFile2: File, zip: String, tmpFolder: File): Unit = {
 		val lF = new java.util.ArrayList[File]
 		lF.add(paramFile1)
 		lF.add(paramFile2)
@@ -17,7 +16,7 @@ trait ArtiScalesTaskParcelManager {
 		val mergeFile = new File(tmpFolder, "merge")//not created since not used
 		val tmpFile = new File(tmpFolder, "tmpFile")
 		tmpFile.mkdirs()//this one is actually used
-		Try(new SelectParcels(rootFolder, outputFolder, varianteSpatialConf, p).selectAndDecompParcels(zip, false, mergeFile, tmpFile)) match {
+		Try(new SelectParcels(rootFolder, outputFolder, new File(variantFolder, variantSpatialConf), p).selectAndDecompParcels(zip, false, mergeFile, tmpFile)) match {
 			case Success(_) =>
 			case Failure(exception) =>
 				println(s"Failure with $exception")
@@ -26,7 +25,7 @@ trait ArtiScalesTaskParcelManager {
 					case None => "DOES NOT EXIST"
 				}
 				}""")
-				exception.printStackTrace
+				exception.printStackTrace()
 		}
 	}
 }

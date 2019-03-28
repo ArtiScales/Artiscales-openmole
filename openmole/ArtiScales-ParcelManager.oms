@@ -11,6 +11,7 @@ val variantFolder = Val[File]
 
 val scenarioFolderName = Val[String]//"DDense"
 val variantFolderName = Val[String]//"variante0"
+val dataFileName = Val[String]
 
 val rootFolderName = "data"
 val MUPFolderName = "MupCityRepository"
@@ -33,11 +34,11 @@ val javaTask = ScalaTask(
     |folderOut.mkdirs
     |val folderTmp = newDir()
     |folderTmp.mkdirs
-    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, dataFile, parameterFile1, parameterFile2, zipCode, folderTmp))""".stripMargin) set (
+    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, variantFolder, dataFileName, parameterFile1, parameterFile2, zipCode, folderTmp))""".stripMargin) set (
   plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
   rootDir := workDirectory / rootFolderName,
-  inputs += (rootDir, dataFile, parameterFile1, parameterFile2, zipCode, scenarioFolderName, variantFolderName, scenarioFolder),
-  outputs += (folderOut, dataFile, zipCode, scenarioFolderName, variantFolderName)
+  inputs += (rootDir, variantFolder, dataFileName, parameterFile1, parameterFile2, zipCode, scenarioFolderName, variantFolderName, scenarioFolder),
+  outputs += (folderOut, zipCode, scenarioFolderName, variantFolderName, dataFileName)
 )
 
 val outputPath = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
@@ -57,7 +58,7 @@ val exploration = DirectSampling(
         (parameterFile1 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName1) x
         (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
         (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
-        (dataFile in variantFolder filter(_.getName.endsWith(".shp")))
+        (dataFile in variantFolder filter(_.getName.endsWith(".shp")) withName dataFileName)
     ),
   condition = !outputPathWithZipCode.exists || outputPathWithZipCode.isEmpty
 )
