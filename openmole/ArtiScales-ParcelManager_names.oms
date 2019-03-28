@@ -19,40 +19,31 @@ val paramSet = "paramSet"
 val paramFileName1 = "parameterScenario.json"
 val paramFileName2 = "parameterTechnic.json"
 
-val resultDirName = "ParcelManager"
-val resultDir = workDirectory / resultDirName
+val o = Val[String]
 
 val csvSampler = CSVSampling(workDirectory / "DEPCOMCities.csv") set (
   columns += ("zip", zipCode)
 )
 
-val javaTask = ScalaTask(
-    """
-    |import artiscalesopenmoleplugin._
-    |val folderOut = newDir()
-    |folderOut.mkdirs
-    |val folderTmp = newDir()
-    |folderTmp.mkdirs
-    |withThreadClassLoader(classLoader(ArtiScalesTaskParcelManager))(ArtiScalesTaskParcelManager(rootDir, folderOut, dataFile, parameterFile1, parameterFile2, zipCode, folderTmp))""".stripMargin) set (
-  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManager),
-  rootDir := workDirectory / rootFolderName,
-  inputs += (rootDir, dataFile, parameterFile1, parameterFile2, zipCode, scenarioFolderName, variantFolderName, scenarioFolder),
-  outputs += (folderOut, dataFile, zipCode, scenarioFolderName, variantFolderName)
-)
+val env = LocalEnvironment(4)
+//val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
 
-val outputPath = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
-val copyHook =  CopyFileHook(folderOut, outputPath)
+val myModel =
+  ScalaTask("""val o = scenarioFolderName + "/" + variantFolderName + "/" + dataFile.getName + "/" + zipCode""") set (
+  inputs += (dataFile, zipCode, parameterFile1, parameterFile2, scenarioFolderName, variantFolderName, scenarioFolder),
+  outputs += (o,scenarioFolderName, variantFolderName,zipCode)
+)
+val resultDirName = "ParcelManager"
 
 val outputPathWithZipCode = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${zipCode}")
 
-//val env = LocalEnvironment(1)
-val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+val h = CSVHook(workDirectory / "names_missing.csv", values = Seq(scenarioFolderName,variantFolderName,zipCode))
 
 val exploration = DirectSampling(
-  evaluation = javaTask on env hook copyHook,
+  evaluation = myModel hook h,
   sampling = 
     (
-        csvSampler x 
+        (csvSampler) x 
         (scenarioFolder in (workDirectory / MUPFolderName) filter(_.isDirectory) withName scenarioFolderName) x
         (parameterFile1 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName1) x
         (parameterFile2 is workDirectory / paramSet / "${scenarioFolderName}" / paramFileName2) x
@@ -60,6 +51,7 @@ val exploration = DirectSampling(
         (dataFile in variantFolder filter(_.getName.endsWith(".shp")))
     ),
   condition = !outputPathWithZipCode.exists || outputPathWithZipCode.isEmpty
+  //condition = outputPathWithZipCode.exists && !outputPathWithZipCode.isEmpty
 )
 
 exploration

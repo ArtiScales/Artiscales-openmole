@@ -1,0 +1,54 @@
+var fileName = Val[String]
+val rootDir = Val[File]
+val dataFile = Val[File]
+val zipCode = Val[String]
+
+val scenarioFolder = Val[File]
+val variantFolder = Val[File]
+
+val outputFolder = Val[File]
+val count = Val[Int]
+
+val scenarioFolderName = Val[String]//"DDense"
+val variantFolderName = Val[String]//"variante0"
+
+val rootFolderName = "data"
+val MUPFolderName = "MupCityRepository"
+
+val resultDirName = "ParcelManager"
+val resultDir = workDirectory / resultDirName
+
+val csvSampler = CSVSampling(workDirectory / "DEPCOMCities.csv") set (
+  columns += ("zip", zipCode)
+)
+
+val javaTask = ScalaTask(
+    """
+    |import artiscalesopenmoleplugin._
+    |val count = withThreadClassLoader(classLoader(ArtiScalesTaskParcelManagerCountAndDelete))(ArtiScalesTaskParcelManagerCountAndDelete(outputFolder))""".stripMargin) set (
+  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskParcelManagerCountAndDelete),
+  rootDir := workDirectory / rootFolderName,
+  inputs += (rootDir, dataFile, zipCode, scenarioFolderName, variantFolderName, scenarioFolder, outputFolder),
+  outputs += (dataFile, zipCode, scenarioFolderName, variantFolderName, outputFolder, count)
+)
+
+val outputPathWithZipCode = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${zipCode}")
+
+val env = LocalEnvironment(1)
+//val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+val printHook = DisplayHook("The count for ${scenarioFolderName} ${variantFolderName} ${zipCode} is ${count}.") when "count == 0"
+
+val exploration = DirectSampling(
+  evaluation = javaTask on env hook printHook,
+  sampling = 
+    (
+        csvSampler x 
+        (scenarioFolder in (workDirectory / MUPFolderName) filter(_.isDirectory) withName scenarioFolderName) x
+        (variantFolder in scenarioFolder filter(_.isDirectory) withName variantFolderName) x
+        (dataFile in variantFolder filter(_.getName.endsWith(".shp"))) x
+        (outputFolder is workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}" / "${zipCode}")
+    ),
+  condition = outputPathWithZipCode.exists && !outputPathWithZipCode.isEmpty
+)
+
+exploration
