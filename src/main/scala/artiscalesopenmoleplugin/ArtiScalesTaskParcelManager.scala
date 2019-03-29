@@ -1,6 +1,7 @@
 package artiscalesopenmoleplugin
 
 import java.io.File
+import java.util
 
 import fr.ign.cogit.modules.SelectParcels
 import fr.ign.cogit.simplu3d.util.SimpluParametersJSON
@@ -9,9 +10,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ArtiScalesTaskParcelManager {
   def apply(rootFolder: File, outputFolder: File, variantFolder: File, variantSpatialConf: String, paramFile1: File, paramFile2: File, zip: String, tmpFolder: File): Unit = {
-		val lF = new java.util.ArrayList[File]
-		lF.add(paramFile1)
-		lF.add(paramFile2)
+		val lF = new java.util.ArrayList[File](util.Arrays.asList(paramFile1,paramFile2))
 		val p: SimpluParametersJSON = new SimpluParametersJSON(lF)
 		val mergeFile = new File(tmpFolder, "merge")//not created since not used
 		val tmpFile = new File(tmpFolder, "tmpFile")
