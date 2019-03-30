@@ -1,0 +1,44 @@
+val outputFolder = Val[File]
+
+val dataGeo = Val[File]
+val dataRegulation = Val[File]
+val scenarioFolder = Val[File]
+val variantFolder = Val[File]
+val scenarioFolderName = Val[String]//"DDense"
+val variantFolderName = Val[String]//"variante0"
+
+val inputFolderName = "ParcelManager"
+val resultDirName = "Packager"
+
+val javaTask = ScalaTask(
+    """
+    |import artiscalesopenmoleplugin._
+    |val tmpFolder = newDir()
+    |tmpFolder.mkdirs
+    |val outputFolder = newDir()
+    |outputFolder.mkdirs
+    |withThreadClassLoader(classLoader(ArtiScalesTaskZonePackager))(ArtiScalesTaskZonePackager(variantFolder, tmpFolder, outputFolder, dataRegulation, dataGeo))""".stripMargin) set (
+  plugins += pluginsOf(artiscalesopenmoleplugin.ArtiScalesTaskZonePackager),
+  inputs += (variantFolder, scenarioFolderName, variantFolderName, dataGeo, dataRegulation),
+  dataGeo := workDirectory / "data" / "dataGeo",
+  dataRegulation := workDirectory / "data" / "dataRegulation",
+  outputs += (outputFolder, scenarioFolderName, variantFolderName)
+)
+
+val outputPath = Expression[File](workDirectory / resultDirName / "${scenarioFolderName}" / "${variantFolderName}")
+val copyHook =  CopyFileHook(outputFolder, outputPath)
+
+val env = LocalEnvironment(1)
+//val env = EGIEnvironment("vo.complex-systems.eu",openMOLEMemory = 2000 megabytes)
+
+val exploration = DirectSampling(
+  evaluation = javaTask on env hook copyHook,
+  sampling = 
+    (
+        (scenarioFolder in (workDirectory / inputFolderName) filter(f => f.isDirectory && f.getName.equals("CPeuDense")) withName scenarioFolderName) x
+        (variantFolder in scenarioFolder filter(f => f.isDirectory && !f.getName.equals("base")) withName variantFolderName)
+    ),
+  condition = !outputPath.exists || outputPath.isEmpty
+)
+
+exploration
